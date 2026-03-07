@@ -10,7 +10,7 @@ def initialise_db(con:db.DuckDBPyConnection):
     con.execute("""
         CREATE TABLE IF NOT EXISTS Sneak (
             id INTEGER DEFAULT nextval('sneak_id_seq') UNIQUE,
-            date DATE NOT NULL,
+            date TIMESTAMP NOT NULL,
             location VARCHAR NOT NULL,
             ticket_link VARCHAR NOT NULL,
             ical_link VARCHAR NOT NULL
@@ -22,7 +22,7 @@ def initialise_db(con:db.DuckDBPyConnection):
     con.execute("""
         CREATE TABLE IF NOT EXISTS Premiere (
             id INTEGER DEFAULT nextval('premiere_id_seq') UNIQUE,
-            date DATE NOT NULL,
+            date TIMESTAMP NOT NULL,
             location VARCHAR NOT NULL,
             link VARCHAR NOT NULL,
             title VARCHAR NOT NULL,
@@ -36,7 +36,7 @@ def initialise_db(con:db.DuckDBPyConnection):
     con.execute("""
         CREATE TABLE IF NOT EXISTS ScrapingLog (
             id INTEGER DEFAULT nextval('scraping_id_seq') UNIQUE,
-            date DATE NOT NULL,
+            date TIMESTAMP NOT NULL,
             success BOOLEAN NOT NULL,
             message VARCHAR
         )

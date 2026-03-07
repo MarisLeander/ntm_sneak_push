@@ -1,5 +1,7 @@
 import requests
 import time
+import re
+from datetime import datetime
 from bs4 import BeautifulSoup
 
 def get_parser(url: str) -> (BeautifulSoup or None, str):
@@ -25,6 +27,31 @@ def get_parser(url: str) -> (BeautifulSoup or None, str):
 
     return BeautifulSoup(html_content, 'html.parser'), "Success"
 
+
+def clean_german_datetime(messy_string: str) -> str:
+    """ Converts "Do, 23.04.2026, 18.30 Uhr Uhr" into a Python datetime object.
+    :param messy_string: A string containing a date and time in a messy format (e.g., "Do, 23.04.2026, 18.30 Uhr Uhr").
+    :return: A Python datetime object representing the cleaned date and time, or None if parsing
+    """
+    if not messy_string:
+        return None
+
+    # Extract the date (looks for DD.MM.YYYY)
+    date_match = re.search(r'\d{2}\.\d{2}\.\d{4}', messy_string)
+    # Extract the time (looks for HH.MM or HH:MM)
+    time_match = re.search(r'\d{2}[:.]\d{2}', messy_string)
+
+    if date_match and time_match:
+        clean_date = date_match.group(0)
+        # Replace dot with colon for standard time parsing (18.30 -> 18:30)
+        clean_time = time_match.group(0).replace('.', ':')
+
+        # Combine and convert to a real datetime object
+        dt_obj = datetime.strptime(f"{clean_date} {clean_time}", "%d.%m.%Y %H:%M")
+        return dt_obj
+
+    return None
+
 def get_sneak_performances(url: str) -> list:
     """ Scrapes the sneak performances from the NTM website, including date, location, ticket link, and iCal link.
     :param url: The URL of the sneak performances page on the NTM website.
@@ -41,6 +68,7 @@ def get_sneak_performances(url: str) -> list:
         # Extract Date
         date_div = item.find('div', class_='productionnextperformances__date')
         date_str = date_div.text.strip() if date_div else None
+        date = clean_german_datetime(date_str) if date_str else None
 
         # Extract Location
         location_tag = item.find('a', class_='productionnextperformances__location')
@@ -56,7 +84,7 @@ def get_sneak_performances(url: str) -> list:
 
         # Store the data in a dictionary
         scraped_data.append({
-            'date': date_str,
+            'date': date,
             'location': location,
             'ticket_link': ticket_link,
             'ical_link': ical_link
