@@ -1,5 +1,7 @@
 import sys
 import init_db
+import scraping
+import insert_db
 import duckdb as db
 from pathlib import Path
 
@@ -40,6 +42,33 @@ def db_working(con: db.DuckDBPyConnection):
             return False
     # If all tables exist, return True
     return True
+
+def scrape_new_data(con: db.DuckDBPyConnection):
+    sneaks = scraping.get_sneak_performances()
+    for sneak in sneaks:
+        # Check with the ticketlink and date if the sneak already exists in the database
+        exists = con.execute("""
+                             SELECT EXISTS (SELECT 1
+                                            FROM Sneak
+                                            WHERE date = ? AND ticket_link = ?)
+                             """, [sneak['ticket_link'], sneak['date']]).fetchone()[0]
+        if exists:
+            continue
+        else:
+            insert_db.insert_sneak(con, sneak)
+            location = sneak['location']
+            premieres = scraping.get_premiere_performances(location=location)
+            for premiere in premieres:
+                # Check with the link and date if the premiere already exists in the database
+                exists = con.execute("""
+                                     SELECT EXISTS (SELECT 1
+                                                    FROM Premiere
+                                                    WHERE date = ? AND link = ?)
+                                     """, [premiere['details_link'], premiere['date']]).fetchone()[0]
+                if exists:
+                    continue
+                else:
+                    insert_db.insert_premiere(con, premiere)
 
 
 def main():

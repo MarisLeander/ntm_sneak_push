@@ -3,7 +3,10 @@ import time
 from bs4 import BeautifulSoup
 
 def get_parser(url: str) -> (BeautifulSoup or None, str):
-
+    """ Fetches the HTML content of the given URL and parses it with BeautifulSoup.
+    :param url: The URL of the webpage to fetch and parse.
+    :return: A tuple containing the BeautifulSoup object (or None if fetching/parsing failed) and a status message ("Success" or error message).
+    """
     try:
         response = requests.get(url)
 
@@ -23,7 +26,10 @@ def get_parser(url: str) -> (BeautifulSoup or None, str):
     return BeautifulSoup(html_content, 'html.parser'), "Success"
 
 def get_sneak_performances(soup: BeautifulSoup) -> list:
-
+    """ Scrapes the sneak performances from the NTM website, including date, location, ticket link, and iCal link.
+    :param soup: A BeautifulSoup object containing the parsed HTML of the NTM performances page.
+    :return: A list of dictionaries, each containing details about a sneak performance (date, location, ticket link, iCal link).
+    """
     # Find all the performance items
     # Notice how we can just search for the specific child items directly!
     performance_items = soup.find_all('div', class_='productionnextperformances__item')
@@ -58,7 +64,11 @@ def get_sneak_performances(soup: BeautifulSoup) -> list:
     for data in scraped_data:
         print(data)
 
-def get_premiere_performances() -> list:
+def get_premiere_performances(location: str) -> list:
+    """ Scrapes the premiere performances from the NTM website, including details from the individual performance pages.
+    :param location: The location for which to scrape premiere performances (e.g., "OPAL", "Altes Kino Franklin", etc.)
+    :return: A list of dictionaries, each containing details about a premiere performance (date, location, title, writer, length, description, etc.)
+    """
     location_filters = {
         "OPAL":"opal-filter",
         "Altes Kino Franklin":"franklin-filter",
@@ -69,9 +79,8 @@ def get_premiere_performances() -> list:
         "Rosengarten":"rosengarten-filter",
         "Weitere Spielorte":"weitere-spielorte-filter"
     }
-    # location = None #@TODO: Extract the location from the soup
-    location = "OPAL" #@TODO: Extract the location from the soup
     location_filter = location_filters[location]
+    # The URL pattern for the premiere page with location filter
     url = f"https://www.nationaltheater-mannheim.de/spielplan/{location_filter}/premiere"
     soup, result = get_parser(url) #@TODO: Handle the case where the parser fails (result != "Success")
 
