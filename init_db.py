@@ -12,7 +12,8 @@ def initialise_db(con:db.DuckDBPyConnection):
             id INTEGER DEFAULT nextval('sneak_id_seq') UNIQUE,
             date DATE NOT NULL,
             location VARCHAR NOT NULL,
-            link VARCHAR NOT NULL,
+            ticket_link VARCHAR NOT NULL,
+            ical_link VARCHAR NOT NULL
         )
         """
     )
