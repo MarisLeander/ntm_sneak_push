@@ -163,6 +163,3 @@ def get_premiere_performances(location: str) -> list:
         scraped_performances.append(perf_data)
 
     return scraped_performances
-
-if __name__ == "__main__":
-    get_premiere_performances()

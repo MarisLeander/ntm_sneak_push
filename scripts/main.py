@@ -1,7 +1,5 @@
 import sys
-import init_db
-import scraping
-import insert_db
+from scripts import init_db, insert_db, scraping
 import duckdb as db
 from pathlib import Path
 
@@ -73,6 +71,7 @@ def scrape_new_data(con: db.DuckDBPyConnection):
 
 def main():
     con = connect_to_db()
+    # 1. Setup database
     if not db_working(con):
         print("Database not build appropriately. Do you want to initialize it? (y/n)")
         answer = input().strip().lower()
@@ -81,6 +80,10 @@ def main():
         else:
             print("Exiting without initializing the database.")
             sys.exit(1)
+
+    # 2. Scrape new data and insert into database
+    scrape_new_data(con)
+    print("Done.")
 
 if __name__ == '__main__':
     main()
