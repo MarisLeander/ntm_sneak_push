@@ -25,13 +25,14 @@ def get_parser(url: str) -> (BeautifulSoup or None, str):
 
     return BeautifulSoup(html_content, 'html.parser'), "Success"
 
-def get_sneak_performances(soup: BeautifulSoup) -> list:
+def get_sneak_performances(url: str) -> list:
     """ Scrapes the sneak performances from the NTM website, including date, location, ticket link, and iCal link.
-    :param soup: A BeautifulSoup object containing the parsed HTML of the NTM performances page.
+    :param url: The URL of the sneak performances page on the NTM website.
     :return: A list of dictionaries, each containing details about a sneak performance (date, location, ticket link, iCal link).
     """
     # Find all the performance items
     # Notice how we can just search for the specific child items directly!
+    soup, result = get_parser(url) #@ TODO: Handle the case where the parser fails (result != "Success")
     performance_items = soup.find_all('div', class_='productionnextperformances__item')
 
     scraped_data = []
@@ -60,9 +61,7 @@ def get_sneak_performances(soup: BeautifulSoup) -> list:
             'ticket_link': ticket_link,
             'ical_link': ical_link
         })
-    # Print the results
-    for data in scraped_data:
-        print(data)
+    return scraped_data
 
 def get_premiere_performances(location: str) -> list:
     """ Scrapes the premiere performances from the NTM website, including details from the individual performance pages.

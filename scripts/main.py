@@ -1,5 +1,5 @@
 import sys
-from scripts import init_db, insert_db, scraping
+import init_db, insert_db, scraping
 import duckdb as db
 from pathlib import Path
 
@@ -42,7 +42,11 @@ def db_working(con: db.DuckDBPyConnection):
     return True
 
 def scrape_new_data(con: db.DuckDBPyConnection):
-    sneaks = scraping.get_sneak_performances()
+    # URL for the sneak performances. The url of premiere performances will be build from information on the sneak page,
+    # so we do not need a separate url for it.
+    # The corresponding logic can be found in the get_premiere_performances function in the scraping module.
+    sneak_url = "https://www.nationaltheater-mannheim.de/spielplan/a-z/theater-sneak/"
+    sneaks = scraping.get_sneak_performances(url=sneak_url)
     for sneak in sneaks:
         # Check with the ticketlink and date if the sneak already exists in the database
         exists = con.execute("""
