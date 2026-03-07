@@ -1,6 +1,6 @@
 import duckdb as db
 
-def build_db(con:db.DuckDBPyConnection):
+def initialise_db(con:db.DuckDBPyConnection):
     """ Build the database tables for Sneak, Premiere, ScrapingLog and NewSneak.
     :param con: An active connection to the DuckDB database.
     :return: None
@@ -35,7 +35,7 @@ def build_db(con:db.DuckDBPyConnection):
     con.execute("""
         CREATE TABLE IF NOT EXISTS ScrapingLog (
             id INTEGER DEFAULT nextval('scraping_id_seq') UNIQUE,
-            date DATE NOTNULL,
+            date DATE NOT NULL,
             success BOOLEAN NOT NULL,
             message VARCHAR
         )
@@ -74,5 +74,5 @@ def reset_db(con:db.DuckDBPyConnection):
     :return: None
     """
     drop_tables(con)
-    build_db(con)
+    initialise_db(con)
     print("Database has been reset successfully.")

@@ -1,15 +1,13 @@
+import sys
+import init_db
 import duckdb as db
 from pathlib import Path
 
+
 def connect_to_db(read_only: bool = False) -> db.DuckDBPyConnection:
-    """
-    Connect to the DuckDB database using a path relative to the script location.
-
-    Args:
-        read_only (bool): If True, connect in read-only mode.
-
-    Returns:
-        db.DuckDBPyConnection: A connection object to the DuckDB database.
+    """ Connect to the DuckDB database using a path relative to the script location.
+    :param read_only: If True, connect in read-only mode.
+    :return: A connection object to the DuckDB database.
     """
     # Get the directory of the current script (__file__)
     script_dir = Path(__file__).parent
@@ -22,21 +20,38 @@ def connect_to_db(read_only: bool = False) -> db.DuckDBPyConnection:
 
     return db.connect(database=str(db_path), read_only=read_only)
 
-def checkdb(con: db.DuckDBPyConnection):
+def db_working(con: db.DuckDBPyConnection):
+    """ Checks if the database is working by verifying the existence of required tables.
+    :param con: An active DuckDB connection object.
+    :return: True if all required tables exist, False otherwise.
     """
-    A simple function to check if the connection to the database is working and if the table exist, by running a test query.
-
-    Args:
-        con (db.DuckDBPyConnection): An active connection to the DuckDB database.
-
-    Returns:
-    """
-
+    tables = ['Sneak', 'Premiere', 'ScrapingLog', 'NewSneak']
+    for table in tables:
+        exists = con.execute(f"""
+                SELECT EXISTS (
+                    SELECT 1 
+                    FROM information_schema.tables 
+                    WHERE table_name = '{table}'
+                )
+            """).fetchone()[0]
+        if not exists:
+            # If any table does not exist, print a message and return False
+            print(f"Table '{table}' does not exist in the database.")
+            return False
+    # If all tables exist, return True
+    return True
 
 
 def main():
     con = connect_to_db()
-    checkdb(con)
+    if not db_working(con):
+        print("Database not build appropriately. Do you want to initialize it? (y/n)")
+        answer = input().strip().lower()
+        if answer == 'y':
+            init_db.initialise_db(con)
+        else:
+            print("Exiting without initializing the database.")
+            sys.exit(1)
 
 if __name__ == '__main__':
     main()
