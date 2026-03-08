@@ -47,8 +47,8 @@ def initialise_db(con:db.DuckDBPyConnection):
         CREATE TABLE IF NOT EXISTS NewSneak (
             scrape_id INTEGER NOT NULL REFERENCES ScrapingLog(id),
             sneak_id INTEGER NOT NULL REFERENCES Sneak(id),
-            premiere_id INTEGER NOT NULL REFERENCES Premiere(id),
-            PRIMARY KEY (scrape_id, sneak_id, premiere_id)
+            premiere_id INTEGER REFERENCES Premiere(id),
+            PRIMARY KEY (scrape_id, sneak_id)
         )    
         """
     )

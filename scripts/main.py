@@ -41,12 +41,37 @@ def db_working(con: db.DuckDBPyConnection):
     # If all tables exist, return True
     return True
 
+def find_matching_premiere(con, sneak_date, sneak_location):
+    """ Finds the premiere performance that matches a given sneak performance based on location and date.
+    :param con: An active DuckDB connection object.
+    :param sneak_date: The date of the sneak performance (as a string in 'YYYY-MM-DD' format).
+    :param sneak_location: The location of the sneak performance (as a string).
+    :return: The id of the matching premiere performance if found, otherwise None.
+    """
+    # Using DuckDB's interval logic to add 14 days
+    query = """
+            SELECT id
+            FROM Premiere
+            WHERE location = ?
+              AND date > ?
+              AND date <= ? + INTERVAL 14 DAYS
+            ORDER BY date ASC
+                LIMIT 1
+            """
+
+    # passing sneak_date twice, once for the lower bound, once for the upper bound
+    result = con.execute(query, [sneak_location, sneak_date, sneak_date]).fetchone()
+
+    # Returns the premiere_id if found, otherwise None (which translates to NULL)
+    return result[0] if result else None
+
 def scrape_new_data(con: db.DuckDBPyConnection):
     # URL for the sneak performances. The url of premiere performances will be build from information on the sneak page,
     # so we do not need a separate url for it.
     # The corresponding logic can be found in the get_premiere_performances function in the scraping module.
     sneak_url = "https://www.nationaltheater-mannheim.de/spielplan/a-z/theater-sneak/"
     sneaks = scraping.get_sneak_performances(url=sneak_url)
+    scraping_id = insert_db.insert_scraping_log(con, success=True, message=f"Scraped {len(sneaks)} sneak performances from {sneak_url}")
     for sneak in sneaks:
         # Check with the ticketlink and date if the sneak already exists in the database
         exists = con.execute("""
@@ -72,6 +97,9 @@ def scrape_new_data(con: db.DuckDBPyConnection):
                 else:
                     insert_db.insert_premiere(con, premiere)
 
+            # Find the premiere that matches the sneak and link them in the NewSneak table
+            matching_premiere_id = find_matching_premiere(con, sneak['date'], location)
+            insert_db.insert_new_sneak(con, matching_premiere_id, sneak, scraping_id)
 
 def main():
     con = connect_to_db()

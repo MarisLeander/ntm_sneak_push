@@ -3,6 +3,7 @@ import time
 import re
 from datetime import datetime
 from bs4 import BeautifulSoup
+from write_log import log_error
 
 def get_parser(url: str) -> (BeautifulSoup or None, str):
     """ Fetches the HTML content of the given URL and parses it with BeautifulSoup.
@@ -23,9 +24,10 @@ def get_parser(url: str) -> (BeautifulSoup or None, str):
     except requests.exceptions.RequestException as e:
         # This catches any connection errors, timeouts, or bad HTTP statuses
         print(f"Something went wrong while fetching the page: {e}")
-        return None, e
+        log_error(f"Something went wrong while fetching the page: {e}")
+        return None
 
-    return BeautifulSoup(html_content, 'html.parser'), "Success"
+    return BeautifulSoup(html_content, 'html.parser')
 
 
 def clean_german_datetime(messy_string: str) -> str:
@@ -84,7 +86,7 @@ def get_sneak_performances(url: str) -> list:
     """
     # Find all the performance items
     # Notice how we can just search for the specific child items directly!
-    soup, result = get_parser(url) #@ TODO: Handle the case where the parser fails (result != "Success")
+    soup = get_parser(url)
     performance_items = soup.find_all('div', class_='productionnextperformances__item')
 
     scraped_data = []
@@ -134,7 +136,7 @@ def get_premiere_performances(location: str) -> list:
     location_filter = location_filters[location]
     # The URL pattern for the premiere page with location filter
     url = f"https://www.nationaltheater-mannheim.de/spielplan/{location_filter}/premiere"
-    soup, result = get_parser(url) #@TODO: Handle the case where the parser fails (result != "Success")
+    soup = get_parser(url)
 
     performance_wrappers = soup.find_all('div', class_='schedule__performancewrapper')
 
@@ -155,10 +157,6 @@ def get_premiere_performances(location: str) -> list:
         else:
             title = None
             details_link = None
-
-        # Extract Location
-        location_tag = wrapper.find(class_='performance__location')
-        location = location_tag.text.strip() if location_tag else Non
 
         # Store in dictionary
         perf_data = {
@@ -210,6 +208,7 @@ def get_premiere_performances(location: str) -> list:
 
             except requests.exceptions.RequestException as e:
                 print(f"Failed to fetch details for {list_title}: {e}")
+                log_error(f"Failed to fetch details for {list_title}: {e}")
 
         # Append the fully populated dictionary to list
         scraped_performances.append(perf_data)
