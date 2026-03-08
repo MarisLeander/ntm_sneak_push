@@ -99,6 +99,7 @@ def scrape_new_data(con: db.DuckDBPyConnection):
 
             # Find the premiere that matches the sneak and link them in the NewSneak table
             matching_premiere_id = find_matching_premiere(con, sneak['date'], location)
+            # Insert the new sneak into the NewSneak table, linking it to the matching premiere (if any) and the current scraping log
             insert_db.insert_new_sneak(con, matching_premiere_id, sneak, scraping_id)
 
 def main():
