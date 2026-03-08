@@ -52,6 +52,31 @@ def clean_german_datetime(messy_string: str) -> str:
 
     return None
 
+
+def parse_duration_to_minutes(duration_str: str) -> int:
+    """ Extracts hours and minutes from a German duration string and returns the total time in minutes as an integer.
+
+    :param duration_str: A string containing the duration in a format like "2 Std 40 Min", "1 Std", "45 Min", etc.
+    :return: The total duration in minutes as an integer, or None if the input is empty or cannot be parsed.
+    """
+    if not duration_str:
+        return 0  # Or None, depending on if you changed your NOT NULL constraint
+
+    total_minutes = 0
+
+    # 1. Look for a number followed by "Std" (e.g., "2 Std")
+    hours_match = re.search(r'(\d+)\s*Std', duration_str)
+    if hours_match:
+        total_minutes += int(hours_match.group(1)) * 60
+
+    # 2. Look for a number followed by "Min" (e.g., "40 Min")
+    minutes_match = re.search(r'(\d+)\s*Min', duration_str)
+    if minutes_match:
+        total_minutes += int(minutes_match.group(1))
+
+    # Return the total, or None if no numbers were found
+    return total_minutes if total_minutes > 0 else None
+
 def get_sneak_performances(url: str) -> list:
     """ Scrapes the sneak performances from the NTM website, including date, location, ticket link, and iCal link.
     :param url: The URL of the sneak performances page on the NTM website.
@@ -174,7 +199,7 @@ def get_premiere_performances(location: str) -> list:
                     label = info.find('span', class_='productionhead__metainfolabel')
                     if label and "Dauer" in label.text:
                         # Grab the full text and remove the label word "Dauer "
-                        perf_data['length'] = info.text.replace(label.text, '').strip()
+                        perf_data['length'] = clean_german_datetime(info.text.replace(label.text, '').strip())
                         break
 
                 # Extract Description

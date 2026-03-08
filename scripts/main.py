@@ -66,7 +66,7 @@ def scrape_new_data(con: db.DuckDBPyConnection):
                                      SELECT EXISTS (SELECT 1
                                                     FROM Premiere
                                                     WHERE date = ? AND link = ?)
-                                     """, [premiere['details_link'], premiere['date']]).fetchone()[0]
+                                     """, [premiere['details_link'], premiere['datetime']]).fetchone()[0]
                 if exists:
                     continue
                 else:
@@ -75,6 +75,7 @@ def scrape_new_data(con: db.DuckDBPyConnection):
 
 def main():
     con = connect_to_db()
+    init_db.reset_db(con)
     # 1. Setup database
     if not db_working(con):
         print("Database not build appropriately. Do you want to initialize it? (y/n)")

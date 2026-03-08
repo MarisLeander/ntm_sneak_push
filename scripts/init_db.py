@@ -26,8 +26,8 @@ def initialise_db(con:db.DuckDBPyConnection):
             location VARCHAR NOT NULL,
             link VARCHAR NOT NULL,
             title VARCHAR NOT NULL,
-            writer VARCHAR NOT NULL,
-            length INTEGER NOT NULL,
+            writer VARCHAR,
+            length INTEGER,
             description VARCHAR NOT NULL
         )
         """
@@ -60,13 +60,14 @@ def drop_tables(con:db.DuckDBPyConnection):
     :param con: An active connection to the DuckDB database.
     :return: None
     """
-    con.execute("DROP SEQUENCE IF EXISTS sneak_id_seq;")
-    con.execute("DROP SEQUENCE IF EXISTS premiere_id_seq;")
-    con.execute("DROP SEQUENCE IF EXISTS scraping_id_seq;")
-    con.execute("DROP TABLE IF EXISTS Sneak;")
-    con.execute("DROP TABLE IF EXISTS Premiere;")
-    con.execute("DROP TABLE IF EXISTS ScrapingLog;")
-    con.execute("DROP TABLE IF EXISTS NewSneak;")
+    con.execute("DROP TABLE IF EXISTS newsneak CASCADE;")
+    con.execute("DROP TABLE IF EXISTS sneak CASCADE;")
+    con.execute("DROP TABLE IF EXISTS premiere CASCADE;")
+    con.execute("DROP TABLE IF EXISTS scrapinglog CASCADE;")
+
+    con.execute("DROP SEQUENCE IF EXISTS sneak_id_seq CASCADE;")
+    con.execute("DROP SEQUENCE IF EXISTS premiere_id_seq CASCADE;")
+    con.execute("DROP SEQUENCE IF EXISTS scraping_id_seq CASCADE;")
 
 def reset_db(con:db.DuckDBPyConnection):
     """ Reset the database by dropping the existing tables and sequences, and then rebuilding them.
